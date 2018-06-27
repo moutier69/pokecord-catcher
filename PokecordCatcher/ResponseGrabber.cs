@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,8 +17,15 @@ namespace PokecordCatcherBot
             this.client = client;
         }
 
-        public async Task<SocketMessage> GrabResponse(Func<SocketMessage, bool> predicate, double timeout)
+        public Task<SocketMessage> SendMessageAndGrabResponse(ITextChannel channel, string msg, Func<SocketMessage, bool> predicate, double timeout) =>
+            GrabResponse(async () => await channel.SendMessageAsync(msg), predicate, timeout);
+
+        public async Task<SocketMessage> GrabResponse(Func<Task> action, Func<SocketMessage, bool> predicate, double timeout)
         {
+
+            if (action == null)
+                throw new ArgumentException("Action cannot be null.");
+
             if (predicate == null)
                 throw new ArgumentException("Predicate cannot be null.");
 
@@ -28,6 +36,7 @@ namespace PokecordCatcherBot
             try
             {
                 client.MessageReceived += messageChecker;
+                await action();
                 return await completion.Task;
             }
             finally

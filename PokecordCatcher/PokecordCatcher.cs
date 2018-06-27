@@ -11,6 +11,7 @@ using System.Drawing;
 using System.Threading.Tasks;
 using Shipwreck.Phash;
 using Shipwreck.Phash.Bitmaps;
+using Discord.Rest;
 
 namespace PokecordCatcherBot
 {
@@ -72,17 +73,27 @@ namespace PokecordCatcherBot
 
             Console.WriteLine($"Found pokemon in {watch.ElapsedMilliseconds}ms");
 
-            await msg.Channel.SendMessageAsync($"{Configuration.PokecordPrefix}catch {name}");
-            await msg.Channel.SendMessageAsync(":joy: :ok_hand: LE POKEMANS XDXD");
-
-            var resp = responseGrabber.GrabResponse(x => x.Author.Id == POKECORD_ID && x.MentionedUsers.Contains(Client.CurrentUser) && x.Content.StartsWith("Congratulations"), 5);
+            var resp = await responseGrabber.SendMessageAndGrabResponse(
+                (ITextChannel)msg.Channel,
+                $"{Configuration.PokecordPrefix}catch {name}",
+                x => x.Channel.Id == msg.Channel.Id && x.Author.Id == POKECORD_ID && x.MentionedUsers.Any(y => y.Id == Client.CurrentUser.Id) && x.Content.StartsWith("Congratulations"),
+                5
+            );
 
             Console.WriteLine(resp == null ? "The Pokecord bot did not respond, catch was a fail." : "Catch confirmed by the Pokecord bot.");
 
             if (resp != null)
             {
-                Logger.Log("Caught a " + name);
+                if (Configuration.EnableCatchResponse)
+                    await msg.Channel.SendMessageAsync(Configuration.CatchResponse);
+
+                Logger.Log($"Caught a {name} in #{resp.Channel.Name} ({((SocketGuildChannel)resp.Channel).Guild.Name}");
             }
+            else
+            {
+                Logger.Log($"Failed to catch {name} in #{resp.Channel.Name} ({((SocketGuildChannel)resp.Channel).Guild.Name}");
+            }
+
             Console.WriteLine();
         }
 
