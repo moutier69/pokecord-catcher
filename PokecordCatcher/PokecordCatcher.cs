@@ -43,6 +43,9 @@ namespace PokecordCatcherBot
 
             responseGrabber = new ResponseGrabber(Client);
 
+            if (Configuration.EnableLogging)
+                Logger.StartLogging();
+
             Client.Log += Log;
             Client.MessageReceived += async x => Task.Run(async () => await OnMessage(x));
         }
@@ -75,6 +78,11 @@ namespace PokecordCatcherBot
             var resp = responseGrabber.GrabResponse(x => x.Author.Id == POKECORD_ID && x.MentionedUsers.Contains(Client.CurrentUser) && x.Content.StartsWith("Congratulations"), 5);
 
             Console.WriteLine(resp == null ? "The Pokecord bot did not respond, catch was a fail." : "Catch confirmed by the Pokecord bot.");
+
+            if (resp != null)
+            {
+                Logger.Log("Caught a " + name);
+            }
             Console.WriteLine();
         }
 

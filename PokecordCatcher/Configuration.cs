@@ -8,5 +8,6 @@ namespace PokecordCatcherBot
     {
         public string Token { get; set; }
         public string PokecordPrefix { get; set; }
+        public bool EnableLogging { get; set; }
     }
 }
