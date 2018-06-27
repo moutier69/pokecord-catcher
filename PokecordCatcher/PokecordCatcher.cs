@@ -22,8 +22,8 @@ namespace PokecordCatcherBot
         public Configuration Configuration { get; }
         public DiscordSocketClient Client { get; }
 
-        private readonly PokemonComparer pokemon;
         private readonly HttpClient http = new HttpClient();
+        private readonly PokemonComparer pokemon;
         private readonly ResponseGrabber responseGrabber;
 
         public PokecordCatcher(Dictionary<string, byte[]> pokemonHashes)
@@ -87,11 +87,11 @@ namespace PokecordCatcherBot
                 if (Configuration.EnableCatchResponse)
                     await msg.Channel.SendMessageAsync(Configuration.CatchResponse);
 
-                Logger.Log($"Caught a {name} in #{resp.Channel.Name} ({((SocketGuildChannel)resp.Channel).Guild.Name}");
+                Logger.Log($"Caught a {name} in #{resp.Channel.Name} ({((SocketGuildChannel)resp.Channel).Guild.Name})");
             }
             else
             {
-                Logger.Log($"Failed to catch {name} in #{resp.Channel.Name} ({((SocketGuildChannel)resp.Channel).Guild.Name}");
+                Logger.Log($"Failed to catch {name} in #{resp.Channel.Name} ({((SocketGuildChannel)resp.Channel).Guild.Name})");
             }
 
             Console.WriteLine();
