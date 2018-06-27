@@ -23,6 +23,7 @@ namespace PokecordCatcherBot
 
         private readonly PokemonComparer pokemon;
         private readonly HttpClient http = new HttpClient();
+        private readonly ResponseGrabber responseGrabber;
 
         public PokecordCatcher(Dictionary<string, byte[]> pokemonHashes)
         {
@@ -40,8 +41,10 @@ namespace PokecordCatcherBot
                 WebSocketProvider = Discord.Net.Providers.WS4Net.WS4NetProvider.Instance,
             });
 
+            responseGrabber = new ResponseGrabber(Client);
+
             Client.Log += Log;
-            Client.MessageReceived += OnMessage;
+            Client.MessageReceived += async x => Task.Run(async () => await OnMessage(x));
         }
 
         private async Task Log(LogMessage x) => Console.WriteLine($"[{x.Severity.ToString()}] {x.Message}");
@@ -68,6 +71,11 @@ namespace PokecordCatcherBot
 
             await msg.Channel.SendMessageAsync($"{Configuration.PokecordPrefix}catch {name}");
             await msg.Channel.SendMessageAsync(":joy: :ok_hand: LE POKEMANS XDXD");
+
+            var resp = responseGrabber.GrabResponse(x => x.Author.Id == POKECORD_ID && x.MentionedUsers.Contains(Client.CurrentUser) && x.Content.StartsWith("Congratulations"), 5);
+
+            Console.WriteLine(resp == null ? "The Pokecord bot did not respond, catch was a fail." : "Catch confirmed by the Pokecord bot.");
+            Console.WriteLine();
         }
 
         public async Task Run()
