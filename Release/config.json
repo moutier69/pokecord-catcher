@@ -1,4 +1,7 @@
 {
 	"PokecordPrefix": "p!",
-	"Token": "ur user token here xd"
+	"Token": "ur token here xd",
+	"EnableLogging": true,
+	"EnableCatchResponse": true,
+	"CatchResponse": ":joy: :ok_hand: LE POKEMANS XDXD"
 }
