@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Shipwreck.Phash;
 using Shipwreck.Phash.Bitmaps;
 using Discord.Rest;
+using PokecordCatcherBot.Models;
 
 namespace PokecordCatcherBot
 {
@@ -19,7 +20,8 @@ namespace PokecordCatcherBot
     {
         public const ulong POKECORD_ID = 365975655608745985;
 
-        public Configuration Configuration { get; }
+        public Configuration Configuration { get; private set; }
+        public State State { get; private set; }
         public DiscordSocketClient Client { get; }
 
         private readonly HttpClient http = new HttpClient();
@@ -31,6 +33,18 @@ namespace PokecordCatcherBot
             pokemon = new PokemonComparer(pokemonHashes);
 
             Configuration = JsonConvert.DeserializeObject<Configuration>(File.ReadAllText("config.json"));
+
+            if (File.Exists("state.data"))
+                State = JsonConvert.DeserializeObject<State>(File.ReadAllText("state.data"));
+            else
+            {
+                State = new State
+                {
+                    WhitelistGuilds = false,
+                    WhitelistPokemon = false
+                };
+                File.WriteAllText("state.data", JsonConvert.SerializeObject(State));
+            }
 
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
@@ -55,6 +69,51 @@ namespace PokecordCatcherBot
 
         private async Task OnMessage(SocketMessage msg)
         {
+            if (msg.Content.StartsWith(Configuration.UserbotPrefix) && msg.Author.Id == Configuration.OwnerID)
+            {
+                var args = msg.Content.Split(' ').ToList();
+                var command = args[0].Substring(Configuration.UserbotPrefix.Length);
+                args.RemoveAt(0);
+
+                if (command == "status")
+                {
+                    var props = typeof(State).GetProperties();
+                    var propData = new Dictionary<string, object>();
+
+                    foreach (var prop in props)
+                        propData[prop.Name] = prop.GetValue(State);
+
+                    await msg.Channel.SendMessageAsync($"```{String.Join('\n', propData.Select(x => $"{x.Key}: {x.Value}"))}```");
+                }
+
+                if (command == "reload")
+                {
+                    Configuration = JsonConvert.DeserializeObject<Configuration>(File.ReadAllText("config.json"));
+                    await msg.Channel.SendMessageAsync("Configuration reloaded.");
+                }
+
+                if (command == "toggleguilds")
+                {
+                    State.WhitelistGuilds = !State.WhitelistGuilds;
+                    await msg.Channel.SendMessageAsync("Whitelisting of guilds has been toggled to " + State.WhitelistGuilds);
+                    File.WriteAllText("state.data", JsonConvert.SerializeObject(State));
+                }
+
+                if (command == "togglepokemon")
+                {
+                    State.WhitelistPokemon = !State.WhitelistPokemon;
+                    await msg.Channel.SendMessageAsync("Whitelisting of pokemon has been toggled to " + State.WhitelistPokemon);
+                    File.WriteAllText("state.data", JsonConvert.SerializeObject(State));
+                }
+
+                return;
+            }
+
+            var guild = ((SocketGuildChannel)msg.Channel).Guild;
+
+            if (State.WhitelistGuilds && !Configuration.WhitelistedGuilds.Contains(guild.Id))
+                return;
+
             if (msg.Author.Id != POKECORD_ID || msg.Embeds?.Count == 0)
                 return;
 
@@ -73,6 +132,13 @@ namespace PokecordCatcherBot
 
             Console.WriteLine($"Found pokemon in {watch.ElapsedMilliseconds}ms");
 
+            if (State.WhitelistPokemon && !Configuration.WhitelistedPokemon.Any(x => x.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("Pokemon is not whitelisted, ignoring.");
+                Logger.Log($"Ignored a {name} in #{msg.Channel.Name} ({guild.Name})");
+                return;
+            }
+
             var resp = await responseGrabber.SendMessageAndGrabResponse(
                 (ITextChannel)msg.Channel,
                 $"{Configuration.PokecordPrefix}catch {name}",
@@ -87,11 +153,11 @@ namespace PokecordCatcherBot
                 if (Configuration.EnableCatchResponse)
                     await msg.Channel.SendMessageAsync(Configuration.CatchResponse);
 
-                Logger.Log($"Caught a {name} in #{resp.Channel.Name} ({((SocketGuildChannel)resp.Channel).Guild.Name})");
+                Logger.Log($"Caught a {name} in #{resp.Channel.Name} ({guild.Name})");
             }
             else
             {
-                Logger.Log($"Failed to catch {name} in #{resp.Channel.Name} ({((SocketGuildChannel)resp.Channel).Guild.Name})");
+                Logger.Log($"Failed to catch {name} in #{resp.Channel.Name} ({guild.Name})");
             }
 
             Console.WriteLine();
