@@ -22,7 +22,6 @@ namespace PokecordCatcherBot
 
         public async Task<SocketMessage> GrabResponse(Func<Task> action, Func<SocketMessage, bool> predicate, double timeout)
         {
-
             if (action == null)
                 throw new ArgumentException("Action cannot be null.");
 
