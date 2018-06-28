@@ -152,7 +152,7 @@ namespace PokecordCatcherBot
             }
             else
             {
-                Logger.Log($"Failed to catch {name} in #{resp.Channel.Name} ({guild.Name})");
+                Logger.Log($"Failed to catch {name} in #{msg.Channel.Name} ({guild.Name})");
             }
 
             Console.WriteLine();
