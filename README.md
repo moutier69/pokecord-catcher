@@ -20,3 +20,25 @@ run this command
 `dotnet PokecordCatcher.dll`
 
 after that have the bot catch pokemans for u xd
+
+### ok how i have the pokemon hack bot how do i filter stuff????
+there are built in commands and stuff to help you do that
+
+set OwnerID and UserbotPrefix in config.json first, YOU SHOULD HAVE IT CONFIGURED.
+
+Add pokemon names to WhitelistedPokemon if you want to filter to certain pokemon, add guild IDs to WhitelistedGuilds if you want to limit the bot to certain servers.
+
+### Commands
+
+You can toggle the bot's filtering with some commands:
+
+`<prefix>status` - displays the bot's toggled properties
+
+`<prefix>reload` - reloads config.json 
+
+`<prefix>toggleguilds` - toggles guild whitelisting
+
+`<prefix>togglepokemon` - toggles pokemon whitelisting
+
+
+your settings will persist accross restarts
