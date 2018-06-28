@@ -30,7 +30,9 @@ Add pokemon names to WhitelistedPokemon if you want to filter to certain pokemon
 
 ### Commands
 
-You can toggle the bot's filtering with some commands:
+You can toggle the bot's filtering with some commands.
+
+<prefix> is the prefix that you set for Userbot in config.json
 
 `<prefix>status` - displays the bot's toggled properties
 
