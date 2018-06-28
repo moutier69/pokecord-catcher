@@ -78,12 +78,7 @@ namespace PokecordCatcherBot
                 if (command == "status")
                 {
                     var props = typeof(State).GetProperties();
-                    var propData = new Dictionary<string, object>();
-
-                    foreach (var prop in props)
-                        propData[prop.Name] = prop.GetValue(State);
-
-                    await msg.Channel.SendMessageAsync($"```{String.Join('\n', propData.Select(x => $"{x.Key}: {x.Value}"))}```");
+                    await msg.Channel.SendMessageAsync($"```{String.Join('\n', props.Select(x => $"{x.Name}: {x.GetValue(State)}"))}```");
                 }
 
                 if (command == "reload")
